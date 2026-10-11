@@ -1,4 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm install",
+  "buildCommand": "echo 'Sin build: solo funciones serverless en /api'",
+  "outputDirectory": "public",
   "functions": {
     "api/webhook.ts": {
       "maxDuration": 30
