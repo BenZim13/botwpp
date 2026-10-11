@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS clientes (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Tabla de Profesionales (Base de candidatos recomendados)
+-- 2. Tbla de Profesionales (Base de candidatos recomendados)
 CREATE TABLE IF NOT EXISTS profesionales (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nombre VARCHAR(100) NOT NULL,
