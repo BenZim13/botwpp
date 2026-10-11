@@ -14,7 +14,10 @@ export default async function handler(req: any, res: any) {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+    const verifyToken =
+      process.env.WHATSAPP_VERIFY_TOKEN ||
+      process.env.VERIFY_TOKEN ||
+      'yaca_bot_jobs_26';
 
     if (mode === 'subscribe' && token === verifyToken) {
       console.log('✅ Webhook de Meta verificado con éxito');
@@ -44,6 +47,7 @@ export default async function handler(req: any, res: any) {
 
       const messageId = message.id;
       const telefono = message.from;
+      const incomingPhoneNumberId = change?.metadata?.phone_number_id;
 
       const alreadyProcessed = await isMessageAlreadyProcessed(messageId);
       if (alreadyProcessed) {
@@ -54,7 +58,8 @@ export default async function handler(req: any, res: any) {
       if (message.type !== 'text') {
         await sendWhatsAppMessage(
           telefono,
-          '¡Hola! Soy Yaca de YacaJobs. Por favor escribime por texto para poder entender tu problema y recomendarte un profesional.'
+          '¡Hola! Soy Yaca de YacaJobs. Por favor escribime por texto para poder entender tu problema y recomendarte un profesional.',
+          incomingPhoneNumberId
         );
         await saveChatMessage(telefono, 'user', `[Mensaje no soportado: ${message.type}]`, messageId);
         return res.status(200).send('NON_TEXT_HANDLED');
@@ -70,7 +75,7 @@ export default async function handler(req: any, res: any) {
 
       await saveChatMessage(telefono, 'model', botReply);
 
-      const sent = await sendWhatsAppMessage(telefono, botReply);
+      const sent = await sendWhatsAppMessage(telefono, botReply, incomingPhoneNumberId);
       if (sent) {
         await checkAndIncrementUsage();
       }
