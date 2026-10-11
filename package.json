@@ -1,0 +1,17 @@
+{
+  "name": "yacajobs-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp AI Assistant para YacaJobs con Google Gemini, Supabase y Vercel",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/api/webhook.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.3"
+  }
+}
