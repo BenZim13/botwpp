@@ -31,10 +31,20 @@ export async function sendWhatsAppMessage(
     return false;
   }
 
+  // Normalización especial para números de celular de Argentina:
+  // Meta en WhatsApp entrante a veces manda 54379... (sin el 9), pero para enviar
+  // requiere 549379... (o viceversa según la lista de prueba).
+  let cleanTo = to.replace(/\D/g, '');
+  if (cleanTo.startsWith('54') && !cleanTo.startsWith('549') && cleanTo.length === 12) {
+    cleanTo = '549' + cleanTo.slice(2);
+  }
+
+  console.log(`Intentando enviar mensaje a: ${cleanTo} (recibido original: ${to})`);
+
   const url = `https://graph.facebook.com/v21.0/${phoneNumberId}/messages`;
 
-  try {
-    const response = await fetch(url, {
+  const sendPayload = async (targetPhone: string) => {
+    return fetch(url, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -43,7 +53,7 @@ export async function sendWhatsAppMessage(
       body: JSON.stringify({
         messaging_product: 'whatsapp',
         recipient_type: 'individual',
-        to: to,
+        to: targetPhone,
         type: 'text',
         text: {
           preview_url: false,
@@ -51,9 +61,35 @@ export async function sendWhatsAppMessage(
         },
       }),
     });
+  };
+
+  try {
+    let response = await sendPayload(cleanTo);
 
     if (!response.ok) {
       const errorText = await response.text();
+      let errorJson: any = null;
+      try {
+        errorJson = JSON.parse(errorText);
+      } catch (e) {}
+
+      // Si falla con código 131030 (Recipient phone number not in allowed list)
+      // reintentamos automáticamente con la variante alternativa (con 9 o sin 9)
+      if (errorJson?.error?.code === 131030) {
+        const altPhone = cleanTo.startsWith('549')
+          ? '54' + cleanTo.slice(3)
+          : '549' + cleanTo.slice(2);
+
+        console.log(`Reintentando automáticamente con variante alternativa: ${altPhone}`);
+        response = await sendPayload(altPhone);
+
+        if (response.ok) {
+          const resJson = await response.json();
+          console.log('✅ Mensaje enviado exitosamente con variante alternativa:', resJson);
+          return true;
+        }
+      }
+
       console.error(`Error enviando mensaje por WhatsApp (${response.status}):`, errorText);
       return false;
     }
