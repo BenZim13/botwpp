@@ -1,5 +1,5 @@
 -- ==============================================================================
--- BASE DE DATOS YACAJOBS (Supabase / PostgreSQL)
+-- BAS DE DATOS YACAJOBS (Supabase / PostgreSQL)
 -- ==============================================================================
 
 -- 1. Tabla de Clientes
